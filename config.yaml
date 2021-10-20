@@ -27,7 +27,7 @@ params:
         title: Phone
   custom_css: []
   custom_js: []
-  description: Your description
+  #description: 
   error404:
     heading: Page couldn't be found
     text: Please visit [this page](/)
@@ -54,7 +54,7 @@ params:
         url: https://github.com/jmaxbloom
       - icon: fa-linkedin
         label: LinkedIn
-        url: https://www.linkedin.com/jared-max-bloom
+        url: https://www.linkedin.com/in/jared-max-bloom/
   image: lbs.jpg
   name: Jared Bloom
   navigation:

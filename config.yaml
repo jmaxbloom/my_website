@@ -55,7 +55,7 @@ params:
       - icon: fa-linkedin
         label: LinkedIn
         url: https://www.linkedin.com/jared-max-bloom
-  image: ''
+  image: lbs.jpg
   name: Jared Bloom
   navigation:
     button1:
@@ -79,7 +79,7 @@ params:
   tiles:
     enable: yes
     showcase:
-      - image: lbs.jpg
+      - image: YK.jpg
         subtitle: My Journey
         title: Holiday Reflections
         url: blogs/yk
@@ -101,7 +101,7 @@ params:
         url: blogs/culture
       - image: HK.jpg
         subtitle: Approximating Hong Kong Airbnb Prices
-        title: A vacation to Asia
+        title: A Vacation to Asia
         url: blogs/hk
   two:
     buttonText: Get Started

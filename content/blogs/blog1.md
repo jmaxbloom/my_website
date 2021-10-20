@@ -7,7 +7,7 @@ description: "I've been performing well in the market. I wanted to use R to figu
 draft: false
 image: pic10.jpg
 keywords: ""
-slug: alpha
+slug: alpha1
 title: Alpha
 ---
 

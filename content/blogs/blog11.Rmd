@@ -8,7 +8,7 @@ draft: false
 image: pic10.jp # save picture in \static\img\blogs. Acceptable formats= jpg, jpeg, or png . Your iPhone pics wont work
 
 keywords: ""
-slug: alpha # slug is the shorthand URL address... no spaces plz
+slug: invest # slug is the shorthand URL address... no spaces plz
 title: Alpha
 ---
   

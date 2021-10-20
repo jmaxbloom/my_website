@@ -94,7 +94,7 @@ params:
       - image: investing.jpg
         subtitle: A year of investing
         title: Portfolio Milestones
-        url: blogs/invest
+        url: blogs/invests
       - image: shock.jpg
         #subtitle:
         title: Culture Shock

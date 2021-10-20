@@ -2,11 +2,11 @@
 categories:
 - ""
 - ""
-date: "2017-10-31T22:26:09-05:00"
-description: Lorem Etiam Nullam
+date: "2021-9-15T22:26:09-05:00"
+description: Are Republicans Anti-Science
 draft: false
 image: pic09.jpg
-keywords: ""
-slug: magna
-title: Magna
+keywords: "republican", "politics", "climate"
+slug: GOP
+title: The Politics of Global Warming
 ---

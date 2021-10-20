@@ -2,14 +2,11 @@
 categories:
 - ""
 - ""
-date: "2017-10-31T22:42:51-05:00"
-description: Nullam et orci eu lorem consequat tincidunt vivamus et sagittis magna
-  sed nunc rhoncus condimentum sem. In efficitur ligula tate urna. Maecenas massa
-  sed magna lacinia magna pellentesque lorem ipsum dolor. Nullam et orci eu lorem
-  consequat tincidunt. Vivamus et sagittis tempus.
+date: "2021-10-5T22:42:51-05:00"
+description: Some thoughts while I'm fasting and reflecting for Yom Kippur
 draft: false
 image: pic07.jpg
-keywords: ""
-slug: aliquam
-title: Aliquam
+keywords: "Holiday", "Yom Kippur", "Journey", "LBS", "London", "School"
+slug: yk
+title: Holiday Reflections
 ---

@@ -16,12 +16,12 @@ params:
         country: United Kingdom
         street: Gloucester Place
         title: Address
-    buttonClear: Clear
-    buttonSend: Send message
+#    buttonClear: Clear
+#    buttonSend: Send message
     email:
       - email: bloom.jared@yahoo.com
         title: Email
-    enable: yes
+#    enable: yes
     phone:
       - phone: +1 (646) 291-2550
         title: Phone

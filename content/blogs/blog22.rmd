@@ -1,0 +1,393 @@
+---
+title: The Politics of Global Warming
+date: "2021-9-15"
+description: Are Republicans Anti-Science
+draft: no
+image: warming.jpg
+keywords: ''
+slug: GOP
+categories:
+- ''
+- ''
+---
+
+```{r, setup, echo=FALSE}
+knitr::opts_chunk$set(
+  message = FALSE, 
+  warning = FALSE, 
+  tidy=FALSE,     # display code as typed
+  size="small")   # slightly smaller font for code
+options(digits = 3)
+
+# default figure size
+knitr::opts_chunk$set(
+  fig.width=6.75, 
+  fig.height=6.75,
+  fig.align = "center"
+)
+```
+
+```{r load-libraries, include=FALSE}
+library(tidyverse)  # Load ggplot2, dplyr, and all the other tidyverse packages
+library(mosaic)
+library(ggthemes)
+library(lubridate)
+library(here)
+library(skimr)
+library(janitor)
+library(httr)
+library(readxl)
+library(vroom)
+library(infer)
+library(kableExtra)
+library(lubridate)
+library(patchwork)
+library(rvest)
+library(scales)
+```
+
+
+
+# Climate change and temperature anomalies 
+
+
+If we wanted to study climate change, we can find data on the *Combined Land-Surface Air and Sea-Surface Water Temperature Anomalies* in the Northern Hemisphere at [NASA's Goddard Institute for Space Studies](https://data.giss.nasa.gov/gistemp). The [tabular data of temperature anomalies can be found here](https://data.giss.nasa.gov/gistemp/tabledata_v4/NH.Ts+dSST.txt)
+
+Temperature anomalies base period: 1951-1980
+
+```{r weather_data, cache=TRUE}
+
+weather <- 
+  read_csv("https://data.giss.nasa.gov/gistemp/tabledata_v4/NH.Ts+dSST.csv", 
+           skip = 1, 
+           na = "***")
+
+```
+
+
+
+
+```{r tidyweather}
+tidyweather <- weather %>%
+  select(Year:Dec)%>% # selecting year and 12 month variables
+  pivot_longer(cols=2:13, # converting dataframe to long format
+               names_to ="Month",
+               values_to = "delta")
+
+glimpse(tidyweather)
+
+```
+
+## Plotting Information
+
+Let us plot the data using a time-series scatter plot, and add a trendline. To do that, we first need to create a new variable called `date` in order to ensure that the `delta` values are plot chronologically. 
+
+
+
+```{r scatter_plot, fig.width = 12}
+
+tidyweather <- tidyweather %>%
+  mutate(date = ymd(paste(as.character(Year), Month, "1")), # add columns date, month and year
+         month = month(date, label=TRUE),
+         year = year(date))
+
+ggplot(tidyweather, aes(x=date, y = delta))+
+  geom_point(size = 0.8, color = "royalblue")+ # add points
+  geom_smooth(color="red") + # add trendline
+  theme_economist_white() +
+  theme(panel.border = element_blank()) +
+  labs ( # change titles and axis names
+    title = "Weather Anomalies",
+    subtitle = "Temperature deviations have increased since 1880",
+    x = "Year",
+    y = "Temperature deviation (°C)", caption = "Data From NASA"
+  ) + theme(axis.title.x = element_text(vjust = -2,size=14, face = "italic", color = "firebrick"), #adjust axis
+            axis.title.y = element_text(vjust = 3,size=14, face = "italic", color = "firebrick")) + #adjust axis
+  scale_x_date(date_breaks = "20 years", labels = date_format("%Y")) #axis formatting
+
+```
+
+## Temperature Increase Differences Across Months
+
+Is the effect of increasing temperature more pronounced in some months? 
+
+Overall, it appears that the effect of increasing temperature is more pronounced in February, March, April and October. Potential explanations for the increase in February, March and April may include the significant drop in Northern Hemisphere snow cover and Arctic sea ice during these months, which helps reflect heat from the sunlight. In addition, variable ocean salinity and temperature affects weather patterns leading to anomalous storm formation which further affects temperature.
+
+
+```{r facet_wrap, fig.width = 12}
+ggplot(tidyweather, aes(x=date, y = delta))+
+  geom_point(size = 0.8, color = "royalblue")+
+  geom_smooth(color="red") +
+  facet_wrap(vars(month)) + # show each month individually
+  theme_bw() +
+  theme(panel.border = element_blank(), # remove background
+        strip.background = element_blank() # remove chart title formatting for better readability
+        ) +
+  labs (
+    title = "Weather Anomalies",
+    subtitle = "More pronounced increases in fall and spring",
+    x = "Year",
+    y = "Temperature deviation (°C)",
+    caption = "Data from NASA"
+  )+theme(axis.title.x = element_text(vjust = -2,size=14, face = "italic", color = "firebrick"), #adjust axis
+            axis.title.y = element_text(vjust = 3,size=14, face = "italic", color = "firebrick"))  #adjust axis
+
+
+```
+
+
+## Data by Decade
+
+
+```{r intervals}
+
+comparison <- tidyweather %>% 
+  filter(Year>= 1881) %>%     #remove years prior to 1881
+  #create new variable 'interval', and assign values based on criteria below:
+  mutate(interval = case_when(
+    Year %in% c(1881:1920) ~ "1881-1920",
+    Year %in% c(1921:1950) ~ "1921-1950",
+    Year %in% c(1951:1980) ~ "1951-1980",
+    Year %in% c(1981:2010) ~ "1981-2010",
+    TRUE ~ "2011-present"
+  ))
+
+```
+
+
+```{r density_plot, fig.width = 12}
+
+ggplot(comparison, aes(x=delta, fill=interval, color = interval), legend.position = "none")+
+  geom_density(alpha=0.2) +   #density plot with tranparency set to 20%
+  theme_economist_white() +
+  theme(legend.title = element_blank(), panel.border = element_blank()) + # remove legend title
+  labs (
+    title = "Density Plot for Monthly Temperature Anomalies",caption = "Data from NASA",subtitle="Increased Anomaly Severity in Recent Time",
+    x = "Temperature deviation in degrees Celsius", 
+    y     = "Density"         #changing y-axis label to sentence case
+  )+theme(axis.title.x = element_text(vjust = -2,size=14, face = "italic", color = "firebrick"), #adjust axis
+            axis.title.y = element_text(vjust = 3,size=14, face = "italic", color = "firebrick"))  #adjust axis
+
+```
+
+## Annual Anomalies 
+
+```{r averaging, fig.width = 12}
+
+#creating yearly averages
+average_annual_anomaly <- tidyweather %>% 
+  group_by(year) %>%   #grouping data by Year
+  
+  # creating summaries for mean delta 
+  # use `na.rm=TRUE` to eliminate NA (not available) values 
+  summarise(
+    annual_average_delta = mean(delta, na.rm = TRUE)
+  )
+
+#plotting the data:
+ggplot(average_annual_anomaly, aes(x = year, y = annual_average_delta))+
+  geom_point(size = 1.1)+
+  
+  #Fit the best fit line, using LOESS method
+  geom_smooth(color = "red")+
+  
+  #change to theme_bw() to have white background + black frame around plot
+  theme_economist_white() +
+  theme(panel.border = element_blank()) +
+  labs (
+    title = "Average Yearly Temperature Anomaly",subtitle = "Increasing Temperature Anomalies",caption = "Data from NASA",
+    x = "Year",
+    y = "Average annual temperature deviation in degrees Celsius"
+  )+theme(axis.title.x = element_text(vjust = -2,size=14, face = "italic", color = "firebrick"), #adjust axis
+            axis.title.y = element_text(vjust = 3,size=14, face = "italic", color = "firebrick")) + #adjust axis  
+  scale_x_continuous(breaks = seq(1880,2020,20)) #axis ticks formatting
+
+
+```
+
+
+## Confidence Interval for `delta`
+
+[NASA points out on their website](https://earthobservatory.nasa.gov/world-of-change/decadaltemp.php) that 
+
+> A one-degree global change is significant because it takes a vast amount of heat to warm all the oceans, atmosphere, and land by that much. In the past, a one- to two-degree drop was all it took to plunge the Earth into the Little Ice Age.
+
+
+```{r, calculate_CI_using_formula}
+
+formula_ci <- comparison %>% 
+ filter(date >= ymd("2011-01-01"), date < ymd("2021-09-01")) %>% # choose the current interval
+  group_by(interval) %>% # group by interval to calculate statistics for entire period 2011-present
+  summarise(  # calculate summary statistics for temperature deviation (delta) using summarise and stat functions
+    mean_annual_delta = mean(delta), # calculate mean, SD, count, SE, lower/upper 95% CI (see this line and below)
+    sd_annual_delta = sd(delta),
+    count = n(),
+    se_annual_delta = sd_annual_delta / sqrt(count),
+    t_critical = qt(0.975, count -1),
+    lower = mean_annual_delta - t_critical * se_annual_delta,
+    upper = mean_annual_delta + t_critical * se_annual_delta,
+  ) %>% 
+  select(interval, mean_annual_delta, sd_annual_delta, se_annual_delta, lower, upper) %>% # select columns for table
+  rename(c("Period"="interval", "Mean"="mean_annual_delta", "Standard Deviation"="sd_annual_delta", "Standard Error"="se_annual_delta", "Lower CI Border"="lower", "Upper CI Border"="upper")) %>% # rename columns
+  kable(format = "html", digits = 2, format.args = list(scientific = FALSE, big.mark = ",", caption = "2011 - Present Summary Statistics")) %>% kable_classic()
+ 
+formula_ci # print
+```
+
+
+```{r, calculate_CI_using_bootstrap, fig.width = 12}
+# use the infer package to construct a 95% CI for delta
+formula_ci <- comparison %>% 
+ filter(year >= "2011", year < "2021") %>% # choose the interval 2011 to 2020, as 2021 has incomplete data
+  group_by(interval) %>% # group by interval to calculate statistics for entire period 2011-present
+  summarise(  # calculate summary statistics for temperature deviation (delta) using summarise and stat functions
+    mean_annual_delta = mean(delta), # calculate mean, SD, count, SE, lower/upper 95% CI (see this line and below)
+    sd_annual_delta = sd(delta),
+    count = n(),
+    se_annual_delta = sd_annual_delta / sqrt(count),
+    t_critical = qt(0.975, count -1),
+    lower = mean_annual_delta - t_critical * se_annual_delta,
+    upper = mean_annual_delta + t_critical * se_annual_delta,
+  ) %>% 
+  select(lower, upper) 
+  
+boot_delta <- comparison %>% 
+  filter(year >= "2011", year < "2021") %>% # filter for years 2011-present
+  group_by(interval) %>% 
+  specify(response = delta) %>% # bootstrap step 1: specify variable
+  generate(reps = 1000, type = "bootstrap") %>% # bootstrap step 2: specify number of reps to generate
+  calculate(stat = "mean") # bootstrap step 3: choose statistic to calculate
+
+
+percentile_ci <- boot_delta %>% 
+  get_confidence_interval(level = 0.95, type = "percentile") # use get_ci to get the 95% confidence interval
+
+
+visualize(boot_delta) + # visualize 
+  shade_confidence_interval(endpoints = percentile_ci, color = "red") +
+  labs(
+      title = "Simulation-Based Bootstrap Distribution and Confidence Interval of Delta",
+      x = "Delta",
+      y = "Frequency"
+  ) +
+  theme_economist_white() +
+  theme(panel.border = element_blank())+
+  theme(axis.title.x = element_text(vjust = -2,size=14, face = "italic", color = "firebrick"), #adjust axis 
+        axis.title.y = element_text(vjust = 3,size=14, face = "italic", color = "firebrick"))
+
+
+```
+
+
+Overall, it appears that the confidence interval for the average annual delta is between 1.01 and 1.11 degrees for 2011-present using the formula and between 1.02 and 1.11 degrees using bootstrapping. This means that if we were to take sufficient random samples from the population, we can expect the confidence intervals to contain the true population mean approximately 95% of the time. The formula for computing the confidence interval is the mean delta - / + critical t-value for n-1 * standard error of delta. The bootstrapping consists of generating a bunch of bootstrap samples, finding the mean of each sample, and creating a distribution of the sample statistics of which the 95% confidence interval is the middle 95% of the bootstrap distribution. The sampling within the bootstrap samples is done with replacement.
+
+# Global warming and political views (GSS)
+
+[A 2010 Pew Research poll](https://www.pewresearch.org/2010/10/27/wide-partisan-divide-over-global-warming/) asked 1,306 Americans, "From what you've read and heard, is there solid evidence that the average temperature on earth has been getting warmer over the past few decades, or not?"
+
+In this exercise we analyze whether there are any differences between the proportion of people who believe the earth is getting warmer and their political ideology. As usual, from the **survey sample data**, we will use the proportions to estimate values of *population parameters*.
+
+
+```{r, read_global_warming_pew_data}
+global_warming_pew <- read_csv(here::here("data", "global_warming_pew.csv"))
+```
+
+You will also notice that many responses should not be taken into consideration, like "No Answer", "Don't Know", "Not applicable", "Refused to Answer".
+
+
+```{r}
+global_warming_pew %>% 
+  count(party_or_ideology, response)
+```
+
+We will be constructing four 95% confidence intervals to estimate population parameters, for the % who believe that **Earth is warming**, according to their party or ideology.
+
+```{r}
+global_warming_ci <- global_warming_pew %>% 
+  filter(response != "Don't know / refuse to answer") %>% # get rid of undecided answers
+  group_by(party_or_ideology) %>%
+  count(party_or_ideology, response)
+  prop.test(248, 798, conf.level = .95) #For Cons Repub
+  prop.test(405, 428, conf.level = .95) #For Lib Dem
+  prop.test(563, 721, conf.level = .95) #Mod/Cons Dem
+  prop.test(135, 270, conf.level = .95) #Mod Lib Repub
+  
+```
+## Political Ideology and Global Warming 
+
+Does it appear that whether or not a respondent believes the earth is warming is independent of their party ideology? You may want to  read on [The challenging politics of climate change](https://www.brookings.edu/research/the-challenging-politics-of-climate-change/)
+
+Whether respondents believe the earth is warming due is not independent of their party ideology. There seems to be a strong relationship with conservatism and not believing in climate science. The more liberal respondents are, the more likely it is they believe in climate change. The reasons for this could be constant false information by networks like Fox News, general distrust in government institutions on the right and economic interests.
+
+
+
+# Biden's Approval Margins
+
+As we saw in class, fivethirtyeight.com has detailed data on [all polls that track the president's approval ](https://projects.fivethirtyeight.com/biden-approval-ratings)
+
+```{r, cache=TRUE}
+# Import approval polls data directly off fivethirtyeight website
+approval_polllist <- read_csv('https://projects.fivethirtyeight.com/biden-approval-data/approval_polllist.csv') 
+
+glimpse(approval_polllist)
+
+# Convert dates from string to date-time
+approval_polllist %>%
+  select(modeldate, startdate, enddate, createddate, timestamp)%>%
+  mutate(poll_date = mdy(createddate), modeldate_as_date = mdy(modeldate), start = mdy(startdate), end = mdy(enddate))
+
+#Cannot convert timestamp directly into date-time because of formatting, split into two vectors, reverse order, re-concatenate, convert to date-time
+s1 <- stringr::str_split_fixed(approval_polllist$timestamp, " ", n=2)[,1]
+s2 <- stringr::str_split_fixed(approval_polllist$timestamp, " ",n=2)[,2]
+times <- dmy_hms(paste(s2, s1, sep = "T"))
+
+glimpse(times)
+approval_polllist %>%
+  add_column(times)
+```
+
+## Net Approval Confidence Intervals
+
+
+
+```{r trump_margin, out.width="100%", fig.width = 13}
+# Create plot here
+approval_polllist <- approval_polllist %>%
+  select(approve, disapprove, enddate) %>%
+  mutate(net_approval = approve - disapprove, end_date = mdy(enddate), week = week(end_date)) 
+
+newap_list <- approval_polllist %>%
+  group_by(week)%>%
+  summarize(avg_netapp=mean(net_approval),
+              count=n(),
+              sdev=sd(net_approval),
+              SErr=sdev/sqrt(count),
+              t_crit = qt(0.975, count-1),
+              CI_low = avg_netapp - t_crit*SErr,
+              CI_high= avg_netapp + t_crit*SErr)
+
+  ggplot(newap_list, aes(x = week, y = avg_netapp))+
+  geom_point(colour = "orangered1")+
+  geom_line(colour = "orangered1")+
+  geom_smooth(colour = "blue", se = FALSE) +
+  geom_hline(yintercept = 0, color = "orange", size = 3)+
+  scale_y_continuous(breaks = seq(-15, 10, by = 2.5))+
+  scale_x_continuous(breaks = c(13,26), limits = c(3, 40))+
+  geom_ribbon(aes(ymin=CI_low, ymax=CI_high) ,fill="grey", alpha=0.2, colour = "orangered1", outline.type = "both")+
+  labs(title = "Estimating approval margin (approve - disapprove) for Joe Biden", subtitle = "Weekly average of all polls", x = "Week of the year", y = "Average Approval Margin (Approve - Disapprove)")+
+  theme_economist_white() +
+    theme(panel.border = element_blank())+
+    theme(axis.title.x = element_text(vjust = -2,size=14, face = "italic", color = "firebrick"), #adjust axis 
+        axis.title.y = element_text(vjust = 3,size=14, face = "italic", color = "firebrick")) + 
+    scale_x_continuous(breaks = seq(0,52,7))
+
+  
+
+```
+
+
+
+## Comparing Confidence Intervals
+ 
+
+The confidence interval in week 3 was much wider than during any other time of 2021, but especially week 25. Trump supporters had stormed the capital on 6 January. The aftermath of this fallout probably led to the significantly increased width of the confidence interval. Another explanation could be that Biden assumed the presidency around that time and respondents of the survey could not base their approval on actual political action Biden had undertaken at the time. Week 25 was at the end of June and the 4th of July was coming up. The national holiday in the United States was likely the force behind the smaller confidence interval. Besides, Biden had ordered a military strike on Iran-backed militia in Iraq and Syria, which might be another reason for the decreased width of the confidence interval as military action against a common enemy unites a nation.

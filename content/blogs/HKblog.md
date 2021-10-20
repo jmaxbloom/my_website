@@ -5,7 +5,7 @@ categories:
 date: "2017-10-31T21:28:43-05:00"
 description: "Now that the world is opening up, I've been getting the travel bug. I wanted to see if I could predict the price of airbnbs in a city I would like to travel to: Hong Kong."
 draft: false
-image: pic10.jpg
+image: hong.jpg
 keywords: ""
 slug: hk
 title: A Vacation to Asia

@@ -79,27 +79,27 @@ params:
   tiles:
     enable: yes
     showcase:
-      - image: pic01.jpg
+      - image: lbs.jpg
         subtitle: My Journey
         title: Holiday Reflections
         url: blogs/yk
-      - image: pic02.jpg
+      - image: books.jpg
         subtitle: Great Works
         title: Book Club
         url: blogs/literature
-      - image: pic03.jpg
+      - image: Climate.jpg
         subtitle: Party Politics and Climate Chagne
         title: The Politics of Global Warming
         url: blogs/GOP
-      - image: pic04.jpg
+      - image: investing.jpg
         subtitle: A year of investing
         title: Portfolio Milestones
         url: blogs/alpha
-      - image: pic05.jpg
+      - image: shock.jpg
         #subtitle:
         title: Culture Shock
         url: blogs/culture
-      - image: pic06.jpg
+      - image: HK.jpg
         subtitle: Approximating Hong Kong Airbnb Prices
         title: A vacation to Asia
         url: blogs/hk

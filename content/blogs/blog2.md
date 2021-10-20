@@ -10,3 +10,4 @@ keywords: ""
 slug: GOP
 title: The Politics of Global Warming
 ---
+

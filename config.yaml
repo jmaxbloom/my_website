@@ -63,7 +63,7 @@ params:
         url: blogs
     button2:
       - name: Resume
-        url: CV
+        url: blogs/CV
     links:
       - name: Home
         url: '#'
@@ -98,7 +98,7 @@ params:
       - image: pic05.jpg
         #subtitle:
         title: Culture Shock
-        url: blogs/Culture
+        url: blogs/culture
       - image: pic06.jpg
         subtitle: Approximating Hong Kong Airbnb Prices
         title: A vacation to Asia

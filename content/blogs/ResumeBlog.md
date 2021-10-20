@@ -6,7 +6,7 @@ date: "2021-9-01T21:28:43-05:00"
 description: ""
 draft: false
 image: pic10.jpg
-keywords: "Resume","CV"
+keywords: ""
 slug: CV
 title: Resume
 ---

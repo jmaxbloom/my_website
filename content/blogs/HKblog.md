@@ -7,7 +7,7 @@ description: "Now that the world is opening up, I've been getting the travel bug
 draft: false
 image: hong.jpg
 keywords: ""
-slug: hk
+slug: hks
 title: A Vacation to Asia
 ---
 

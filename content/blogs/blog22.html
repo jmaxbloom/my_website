@@ -1,29 +1,445 @@
 ---
-title: "Blog22"
-author: "Jared Bloom"
-date: "10/20/2021"
-output: html_document
+title: "The Politics of Global Warming"
+date: "2021-9-15"
+description: Are Republicans Anti-Science
+draft: no
+image: warming.jpg
+keywords: ''
+slug: GOP
+categories:
+- ''
+- ''
 ---
 
 <script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+<script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
+<link href="/rmarkdown-libs/lightable/lightable.css" rel="stylesheet" />
 
 
-<div id="r-markdown" class="section level2">
-<h2>R Markdown</h2>
-<p>This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <a href="http://rmarkdown.rstudio.com" class="uri">http://rmarkdown.rstudio.com</a>.</p>
-<p>When you click the <strong>Knit</strong> button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:</p>
-<pre class="r"><code>summary(cars)</code></pre>
-<pre><code>##      speed           dist       
-##  Min.   : 4.0   Min.   :  2.00  
-##  1st Qu.:12.0   1st Qu.: 26.00  
-##  Median :15.0   Median : 36.00  
-##  Mean   :15.4   Mean   : 42.98  
-##  3rd Qu.:19.0   3rd Qu.: 56.00  
-##  Max.   :25.0   Max.   :120.00</code></pre>
+<div id="climate-change-and-temperature-anomalies" class="section level1">
+<h1>Climate change and temperature anomalies</h1>
+<p>If we wanted to study climate change, we can find data on the <em>Combined Land-Surface Air and Sea-Surface Water Temperature Anomalies</em> in the Northern Hemisphere at <a href="https://data.giss.nasa.gov/gistemp">NASA’s Goddard Institute for Space Studies</a>. The <a href="https://data.giss.nasa.gov/gistemp/tabledata_v4/NH.Ts+dSST.txt">tabular data of temperature anomalies can be found here</a></p>
+<p>Temperature anomalies base period: 1951-1980</p>
+<pre class="r"><code>weather &lt;- 
+  read_csv(&quot;https://data.giss.nasa.gov/gistemp/tabledata_v4/NH.Ts+dSST.csv&quot;, 
+           skip = 1, 
+           na = &quot;***&quot;)</code></pre>
+<pre class="r"><code>tidyweather &lt;- weather %&gt;%
+  select(Year:Dec)%&gt;% # selecting year and 12 month variables
+  pivot_longer(cols=2:13, # converting dataframe to long format
+               names_to =&quot;Month&quot;,
+               values_to = &quot;delta&quot;)
+
+glimpse(tidyweather)</code></pre>
+<pre><code>## Rows: 1,704
+## Columns: 3
+## $ Year  &lt;dbl&gt; 1880, 1880, 1880, 1880, 1880, 1880, 1880, 1880, 1880, 1880, 1880~
+## $ Month &lt;chr&gt; &quot;Jan&quot;, &quot;Feb&quot;, &quot;Mar&quot;, &quot;Apr&quot;, &quot;May&quot;, &quot;Jun&quot;, &quot;Jul&quot;, &quot;Aug&quot;, &quot;Sep&quot;, &quot;~
+## $ delta &lt;dbl&gt; -0.35, -0.51, -0.23, -0.30, -0.06, -0.16, -0.18, -0.26, -0.23, -~</code></pre>
+<div id="plotting-information" class="section level2">
+<h2>Plotting Information</h2>
+<p>Let us plot the data using a time-series scatter plot, and add a trendline. To do that, we first need to create a new variable called <code>date</code> in order to ensure that the <code>delta</code> values are plot chronologically.</p>
+<pre class="r"><code>tidyweather &lt;- tidyweather %&gt;%
+  mutate(date = ymd(paste(as.character(Year), Month, &quot;1&quot;)), # add columns date, month and year
+         month = month(date, label=TRUE),
+         year = year(date))
+
+ggplot(tidyweather, aes(x=date, y = delta))+
+  geom_point(size = 0.8, color = &quot;royalblue&quot;)+ # add points
+  geom_smooth(color=&quot;red&quot;) + # add trendline
+  theme_economist_white() +
+  theme(panel.border = element_blank()) +
+  labs ( # change titles and axis names
+    title = &quot;Weather Anomalies&quot;,
+    subtitle = &quot;Temperature deviations have increased since 1880&quot;,
+    x = &quot;Year&quot;,
+    y = &quot;Temperature deviation (°C)&quot;, caption = &quot;Data From NASA&quot;
+  ) + theme(axis.title.x = element_text(vjust = -2,size=14, face = &quot;italic&quot;, color = &quot;firebrick&quot;), #adjust axis
+            axis.title.y = element_text(vjust = 3,size=14, face = &quot;italic&quot;, color = &quot;firebrick&quot;)) + #adjust axis
+  scale_x_date(date_breaks = &quot;20 years&quot;, labels = date_format(&quot;%Y&quot;)) #axis formatting</code></pre>
+<p><img src="/blogs/blog22_files/figure-html/scatter_plot-1.png" width="1152" style="display: block; margin: auto;" /></p>
 </div>
-<div id="including-plots" class="section level2">
-<h2>Including Plots</h2>
-<p>You can also embed plots, for example:</p>
-<p><img src="/blogs/blog22_files/figure-html/pressure-1.png" width="672" /></p>
-<p>Note that the <code>echo = FALSE</code> parameter was added to the code chunk to prevent printing of the R code that generated the plot.</p>
+<div id="temperature-increase-differences-across-months" class="section level2">
+<h2>Temperature Increase Differences Across Months</h2>
+<p>Is the effect of increasing temperature more pronounced in some months?</p>
+<p>Overall, it appears that the effect of increasing temperature is more pronounced in February, March, April and October. Potential explanations for the increase in February, March and April may include the significant drop in Northern Hemisphere snow cover and Arctic sea ice during these months, which helps reflect heat from the sunlight. In addition, variable ocean salinity and temperature affects weather patterns leading to anomalous storm formation which further affects temperature.</p>
+<pre class="r"><code>ggplot(tidyweather, aes(x=date, y = delta))+
+  geom_point(size = 0.8, color = &quot;royalblue&quot;)+
+  geom_smooth(color=&quot;red&quot;) +
+  facet_wrap(vars(month)) + # show each month individually
+  theme_bw() +
+  theme(panel.border = element_blank(), # remove background
+        strip.background = element_blank() # remove chart title formatting for better readability
+        ) +
+  labs (
+    title = &quot;Weather Anomalies&quot;,
+    subtitle = &quot;More pronounced increases in fall and spring&quot;,
+    x = &quot;Year&quot;,
+    y = &quot;Temperature deviation (°C)&quot;,
+    caption = &quot;Data from NASA&quot;
+  )+theme(axis.title.x = element_text(vjust = -2,size=14, face = &quot;italic&quot;, color = &quot;firebrick&quot;), #adjust axis
+            axis.title.y = element_text(vjust = 3,size=14, face = &quot;italic&quot;, color = &quot;firebrick&quot;))  #adjust axis</code></pre>
+<p><img src="/blogs/blog22_files/figure-html/facet_wrap-1.png" width="1152" style="display: block; margin: auto;" /></p>
+</div>
+<div id="data-by-decade" class="section level2">
+<h2>Data by Decade</h2>
+<pre class="r"><code>comparison &lt;- tidyweather %&gt;% 
+  filter(Year&gt;= 1881) %&gt;%     #remove years prior to 1881
+  #create new variable &#39;interval&#39;, and assign values based on criteria below:
+  mutate(interval = case_when(
+    Year %in% c(1881:1920) ~ &quot;1881-1920&quot;,
+    Year %in% c(1921:1950) ~ &quot;1921-1950&quot;,
+    Year %in% c(1951:1980) ~ &quot;1951-1980&quot;,
+    Year %in% c(1981:2010) ~ &quot;1981-2010&quot;,
+    TRUE ~ &quot;2011-present&quot;
+  ))</code></pre>
+<pre class="r"><code>ggplot(comparison, aes(x=delta, fill=interval, color = interval), legend.position = &quot;none&quot;)+
+  geom_density(alpha=0.2) +   #density plot with tranparency set to 20%
+  theme_economist_white() +
+  theme(legend.title = element_blank(), panel.border = element_blank()) + # remove legend title
+  labs (
+    title = &quot;Density Plot for Monthly Temperature Anomalies&quot;,caption = &quot;Data from NASA&quot;,subtitle=&quot;Increased Anomaly Severity in Recent Time&quot;,
+    x = &quot;Temperature deviation in degrees Celsius&quot;, 
+    y     = &quot;Density&quot;         #changing y-axis label to sentence case
+  )+theme(axis.title.x = element_text(vjust = -2,size=14, face = &quot;italic&quot;, color = &quot;firebrick&quot;), #adjust axis
+            axis.title.y = element_text(vjust = 3,size=14, face = &quot;italic&quot;, color = &quot;firebrick&quot;))  #adjust axis</code></pre>
+<p><img src="/blogs/blog22_files/figure-html/density_plot-1.png" width="1152" style="display: block; margin: auto;" /></p>
+</div>
+<div id="annual-anomalies" class="section level2">
+<h2>Annual Anomalies</h2>
+<pre class="r"><code>#creating yearly averages
+average_annual_anomaly &lt;- tidyweather %&gt;% 
+  group_by(year) %&gt;%   #grouping data by Year
+  
+  # creating summaries for mean delta 
+  # use `na.rm=TRUE` to eliminate NA (not available) values 
+  summarise(
+    annual_average_delta = mean(delta, na.rm = TRUE)
+  )
+
+#plotting the data:
+ggplot(average_annual_anomaly, aes(x = year, y = annual_average_delta))+
+  geom_point(size = 1.1)+
+  
+  #Fit the best fit line, using LOESS method
+  geom_smooth(color = &quot;red&quot;)+
+  
+  #change to theme_bw() to have white background + black frame around plot
+  theme_economist_white() +
+  theme(panel.border = element_blank()) +
+  labs (
+    title = &quot;Average Yearly Temperature Anomaly&quot;,subtitle = &quot;Increasing Temperature Anomalies&quot;,caption = &quot;Data from NASA&quot;,
+    x = &quot;Year&quot;,
+    y = &quot;Average annual temperature deviation in degrees Celsius&quot;
+  )+theme(axis.title.x = element_text(vjust = -2,size=14, face = &quot;italic&quot;, color = &quot;firebrick&quot;), #adjust axis
+            axis.title.y = element_text(vjust = 3,size=14, face = &quot;italic&quot;, color = &quot;firebrick&quot;)) + #adjust axis  
+  scale_x_continuous(breaks = seq(1880,2020,20)) #axis ticks formatting</code></pre>
+<p><img src="/blogs/blog22_files/figure-html/averaging-1.png" width="1152" style="display: block; margin: auto;" /></p>
+</div>
+<div id="confidence-interval-for-delta" class="section level2">
+<h2>Confidence Interval for <code>delta</code></h2>
+<p><a href="https://earthobservatory.nasa.gov/world-of-change/decadaltemp.php">NASA points out on their website</a> that</p>
+<blockquote>
+<p>A one-degree global change is significant because it takes a vast amount of heat to warm all the oceans, atmosphere, and land by that much. In the past, a one- to two-degree drop was all it took to plunge the Earth into the Little Ice Age.</p>
+</blockquote>
+<pre class="r"><code>formula_ci &lt;- comparison %&gt;% 
+ filter(date &gt;= ymd(&quot;2011-01-01&quot;), date &lt; ymd(&quot;2021-09-01&quot;)) %&gt;% # choose the current interval
+  group_by(interval) %&gt;% # group by interval to calculate statistics for entire period 2011-present
+  summarise(  # calculate summary statistics for temperature deviation (delta) using summarise and stat functions
+    mean_annual_delta = mean(delta), # calculate mean, SD, count, SE, lower/upper 95% CI (see this line and below)
+    sd_annual_delta = sd(delta),
+    count = n(),
+    se_annual_delta = sd_annual_delta / sqrt(count),
+    t_critical = qt(0.975, count -1),
+    lower = mean_annual_delta - t_critical * se_annual_delta,
+    upper = mean_annual_delta + t_critical * se_annual_delta,
+  ) %&gt;% 
+  select(interval, mean_annual_delta, sd_annual_delta, se_annual_delta, lower, upper) %&gt;% # select columns for table
+  rename(c(&quot;Period&quot;=&quot;interval&quot;, &quot;Mean&quot;=&quot;mean_annual_delta&quot;, &quot;Standard Deviation&quot;=&quot;sd_annual_delta&quot;, &quot;Standard Error&quot;=&quot;se_annual_delta&quot;, &quot;Lower CI Border&quot;=&quot;lower&quot;, &quot;Upper CI Border&quot;=&quot;upper&quot;)) %&gt;% # rename columns
+  kable(format = &quot;html&quot;, digits = 2, format.args = list(scientific = FALSE, big.mark = &quot;,&quot;, caption = &quot;2011 - Present Summary Statistics&quot;)) %&gt;% kable_classic()
+ 
+formula_ci # print</code></pre>
+<table class=" lightable-classic" style="font-family: &quot;Arial Narrow&quot;, &quot;Source Sans Pro&quot;, sans-serif; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Period
+</th>
+<th style="text-align:right;">
+Mean
+</th>
+<th style="text-align:right;">
+Standard Deviation
+</th>
+<th style="text-align:right;">
+Standard Error
+</th>
+<th style="text-align:right;">
+Lower CI Border
+</th>
+<th style="text-align:right;">
+Upper CI Border
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+2011-present
+</td>
+<td style="text-align:right;">
+1.06
+</td>
+<td style="text-align:right;">
+0.28
+</td>
+<td style="text-align:right;">
+0.02
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+<td style="text-align:right;">
+1.11
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code># use the infer package to construct a 95% CI for delta
+formula_ci &lt;- comparison %&gt;% 
+ filter(year &gt;= &quot;2011&quot;, year &lt; &quot;2021&quot;) %&gt;% # choose the interval 2011 to 2020, as 2021 has incomplete data
+  group_by(interval) %&gt;% # group by interval to calculate statistics for entire period 2011-present
+  summarise(  # calculate summary statistics for temperature deviation (delta) using summarise and stat functions
+    mean_annual_delta = mean(delta), # calculate mean, SD, count, SE, lower/upper 95% CI (see this line and below)
+    sd_annual_delta = sd(delta),
+    count = n(),
+    se_annual_delta = sd_annual_delta / sqrt(count),
+    t_critical = qt(0.975, count -1),
+    lower = mean_annual_delta - t_critical * se_annual_delta,
+    upper = mean_annual_delta + t_critical * se_annual_delta,
+  ) %&gt;% 
+  select(lower, upper) 
+  
+boot_delta &lt;- comparison %&gt;% 
+  filter(year &gt;= &quot;2011&quot;, year &lt; &quot;2021&quot;) %&gt;% # filter for years 2011-present
+  group_by(interval) %&gt;% 
+  specify(response = delta) %&gt;% # bootstrap step 1: specify variable
+  generate(reps = 1000, type = &quot;bootstrap&quot;) %&gt;% # bootstrap step 2: specify number of reps to generate
+  calculate(stat = &quot;mean&quot;) # bootstrap step 3: choose statistic to calculate
+
+
+percentile_ci &lt;- boot_delta %&gt;% 
+  get_confidence_interval(level = 0.95, type = &quot;percentile&quot;) # use get_ci to get the 95% confidence interval
+
+
+visualize(boot_delta) + # visualize 
+  shade_confidence_interval(endpoints = percentile_ci, color = &quot;red&quot;) +
+  labs(
+      title = &quot;Simulation-Based Bootstrap Distribution and Confidence Interval of Delta&quot;,
+      x = &quot;Delta&quot;,
+      y = &quot;Frequency&quot;
+  ) +
+  theme_economist_white() +
+  theme(panel.border = element_blank())+
+  theme(axis.title.x = element_text(vjust = -2,size=14, face = &quot;italic&quot;, color = &quot;firebrick&quot;), #adjust axis 
+        axis.title.y = element_text(vjust = 3,size=14, face = &quot;italic&quot;, color = &quot;firebrick&quot;))</code></pre>
+<p><img src="/blogs/blog22_files/figure-html/calculate_CI_using_bootstrap-1.png" width="1152" style="display: block; margin: auto;" /></p>
+<p>Overall, it appears that the confidence interval for the average annual delta is between 1.01 and 1.11 degrees for 2011-present using the formula and between 1.02 and 1.11 degrees using bootstrapping. This means that if we were to take sufficient random samples from the population, we can expect the confidence intervals to contain the true population mean approximately 95% of the time. The formula for computing the confidence interval is the mean delta - / + critical t-value for n-1 * standard error of delta. The bootstrapping consists of generating a bunch of bootstrap samples, finding the mean of each sample, and creating a distribution of the sample statistics of which the 95% confidence interval is the middle 95% of the bootstrap distribution. The sampling within the bootstrap samples is done with replacement.</p>
+</div>
+</div>
+<div id="global-warming-and-political-views-gss" class="section level1">
+<h1>Global warming and political views (GSS)</h1>
+<p><a href="https://www.pewresearch.org/2010/10/27/wide-partisan-divide-over-global-warming/">A 2010 Pew Research poll</a> asked 1,306 Americans, “From what you’ve read and heard, is there solid evidence that the average temperature on earth has been getting warmer over the past few decades, or not?”</p>
+<p>In this exercise we analyze whether there are any differences between the proportion of people who believe the earth is getting warmer and their political ideology. As usual, from the <strong>survey sample data</strong>, we will use the proportions to estimate values of <em>population parameters</em>.</p>
+<pre class="r"><code>global_warming_pew &lt;- read_csv(here::here(&quot;content&quot;,&quot;blogs&quot;, &quot;global_warming_pew.csv&quot;))</code></pre>
+<p>You will also notice that many responses should not be taken into consideration, like “No Answer”, “Don’t Know”, “Not applicable”, “Refused to Answer”.</p>
+<pre class="r"><code>global_warming_pew %&gt;% 
+  count(party_or_ideology, response)</code></pre>
+<pre><code>## # A tibble: 12 x 3
+##    party_or_ideology       response                          n
+##    &lt;chr&gt;                   &lt;chr&gt;                         &lt;int&gt;
+##  1 Conservative Republican Don&#39;t know / refuse to answer    45
+##  2 Conservative Republican Earth is warming                248
+##  3 Conservative Republican Not warming                     450
+##  4 Liberal Democrat        Don&#39;t know / refuse to answer    23
+##  5 Liberal Democrat        Earth is warming                405
+##  6 Liberal Democrat        Not warming                      23
+##  7 Mod/Cons Democrat       Don&#39;t know / refuse to answer    45
+##  8 Mod/Cons Democrat       Earth is warming                563
+##  9 Mod/Cons Democrat       Not warming                     158
+## 10 Mod/Lib Republican      Don&#39;t know / refuse to answer    23
+## 11 Mod/Lib Republican      Earth is warming                135
+## 12 Mod/Lib Republican      Not warming                     135</code></pre>
+<p>We will be constructing four 95% confidence intervals to estimate population parameters, for the % who believe that <strong>Earth is warming</strong>, according to their party or ideology.</p>
+<pre class="r"><code>global_warming_ci &lt;- global_warming_pew %&gt;% 
+  filter(response != &quot;Don&#39;t know / refuse to answer&quot;) %&gt;% # get rid of undecided answers
+  group_by(party_or_ideology) %&gt;%
+  count(party_or_ideology, response)
+  prop.test(248, 798, conf.level = .95) #For Cons Repub</code></pre>
+<pre><code>## 
+##  1-sample proportions test with continuity correction
+## 
+## data:  248 out of 798
+## X-squared = 114, df = 1, p-value &lt;2e-16
+## alternative hypothesis: true p is not equal to 0.5
+## 95 percent confidence interval:
+##  0.279 0.344
+## sample estimates:
+##     p 
+## 0.311</code></pre>
+<pre class="r"><code>  prop.test(405, 428, conf.level = .95) #For Lib Dem</code></pre>
+<pre><code>## 
+##  1-sample proportions test with continuity correction
+## 
+## data:  405 out of 428
+## X-squared = 339, df = 1, p-value &lt;2e-16
+## alternative hypothesis: true p is not equal to 0.5
+## 95 percent confidence interval:
+##  0.919 0.965
+## sample estimates:
+##     p 
+## 0.946</code></pre>
+<pre class="r"><code>  prop.test(563, 721, conf.level = .95) #Mod/Cons Dem</code></pre>
+<pre><code>## 
+##  1-sample proportions test with continuity correction
+## 
+## data:  563 out of 721
+## X-squared = 226, df = 1, p-value &lt;2e-16
+## alternative hypothesis: true p is not equal to 0.5
+## 95 percent confidence interval:
+##  0.748 0.810
+## sample estimates:
+##     p 
+## 0.781</code></pre>
+<pre class="r"><code>  prop.test(135, 270, conf.level = .95) #Mod Lib Repub</code></pre>
+<pre><code>## 
+##  1-sample proportions test without continuity correction
+## 
+## data:  135 out of 270
+## X-squared = 0, df = 1, p-value = 1
+## alternative hypothesis: true p is not equal to 0.5
+## 95 percent confidence interval:
+##  0.441 0.559
+## sample estimates:
+##   p 
+## 0.5</code></pre>
+<div id="political-ideology-and-global-warming" class="section level2">
+<h2>Political Ideology and Global Warming</h2>
+<p>Does it appear that whether or not a respondent believes the earth is warming is independent of their party ideology? You may want to read on <a href="https://www.brookings.edu/research/the-challenging-politics-of-climate-change/">The challenging politics of climate change</a></p>
+<p>Whether respondents believe the earth is warming due is not independent of their party ideology. There seems to be a strong relationship with conservatism and not believing in climate science. The more liberal respondents are, the more likely it is they believe in climate change. The reasons for this could be constant false information by networks like Fox News, general distrust in government institutions on the right and economic interests.</p>
+</div>
+</div>
+<div id="bidens-approval-margins" class="section level1">
+<h1>Biden’s Approval Margins</h1>
+<p>As we saw in class, fivethirtyeight.com has detailed data on <a href="https://projects.fivethirtyeight.com/biden-approval-ratings">all polls that track the president’s approval</a></p>
+<pre class="r"><code># Import approval polls data directly off fivethirtyeight website
+approval_polllist &lt;- read_csv(&#39;https://projects.fivethirtyeight.com/biden-approval-data/approval_polllist.csv&#39;) 
+
+glimpse(approval_polllist)</code></pre>
+<pre><code>## Rows: 1,945
+## Columns: 22
+## $ president           &lt;chr&gt; &quot;Joseph R. Biden Jr.&quot;, &quot;Joseph R. Biden Jr.&quot;, &quot;Jos~
+## $ subgroup            &lt;chr&gt; &quot;All polls&quot;, &quot;All polls&quot;, &quot;All polls&quot;, &quot;All polls&quot;~
+## $ modeldate           &lt;chr&gt; &quot;10/20/2021&quot;, &quot;10/20/2021&quot;, &quot;10/20/2021&quot;, &quot;10/20/2~
+## $ startdate           &lt;chr&gt; &quot;1/19/2021&quot;, &quot;1/19/2021&quot;, &quot;1/20/2021&quot;, &quot;1/20/2021&quot;~
+## $ enddate             &lt;chr&gt; &quot;1/21/2021&quot;, &quot;1/21/2021&quot;, &quot;1/21/2021&quot;, &quot;1/22/2021&quot;~
+## $ pollster            &lt;chr&gt; &quot;Morning Consult&quot;, &quot;Rasmussen Reports/Pulse Opinio~
+## $ grade               &lt;chr&gt; &quot;B&quot;, &quot;B&quot;, &quot;B&quot;, &quot;B&quot;, &quot;B-&quot;, &quot;B+&quot;, &quot;B&quot;, &quot;B-&quot;, &quot;B&quot;, &quot;B~
+## $ samplesize          &lt;dbl&gt; 15000, 1500, 1993, 15000, 1115, 1516, 15000, 1200,~
+## $ population          &lt;chr&gt; &quot;a&quot;, &quot;lv&quot;, &quot;rv&quot;, &quot;a&quot;, &quot;a&quot;, &quot;a&quot;, &quot;a&quot;, &quot;rv&quot;, &quot;lv&quot;, &quot;~
+## $ weight              &lt;dbl&gt; 0.2594, 0.3382, 0.0930, 0.2333, 1.1014, 1.2454, 0.~
+## $ influence           &lt;dbl&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,~
+## $ approve             &lt;dbl&gt; 50, 48, 56, 51, 55, 45, 52, 58, 48, 63, 55, 53, 48~
+## $ disapprove          &lt;dbl&gt; 28, 45, 31, 28, 32, 28, 29, 32, 47, 37, 33, 29, 47~
+## $ adjusted_approve    &lt;dbl&gt; 48.5, 50.4, 54.5, 49.5, 53.8, 46.4, 50.5, 56.9, 50~
+## $ adjusted_disapprove &lt;dbl&gt; 31.2, 38.7, 34.2, 31.2, 33.0, 28.5, 32.2, 33.1, 40~
+## $ multiversions       &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA~
+## $ tracking            &lt;lgl&gt; TRUE, TRUE, NA, TRUE, NA, NA, TRUE, NA, TRUE, NA, ~
+## $ url                 &lt;chr&gt; &quot;https://morningconsult.com/form/global-leader-app~
+## $ poll_id             &lt;dbl&gt; 74272, 74247, 74246, 74273, 74248, 74327, 74274, 7~
+## $ question_id         &lt;dbl&gt; 139491, 139395, 139394, 139492, 139404, 139570, 13~
+## $ createddate         &lt;chr&gt; &quot;1/28/2021&quot;, &quot;1/22/2021&quot;, &quot;1/22/2021&quot;, &quot;1/28/2021&quot;~
+## $ timestamp           &lt;chr&gt; &quot;16:59:11 20 Oct 2021&quot;, &quot;16:59:11 20 Oct 2021&quot;, &quot;1~</code></pre>
+<pre class="r"><code># Convert dates from string to date-time
+approval_polllist %&gt;%
+  select(modeldate, startdate, enddate, createddate, timestamp)%&gt;%
+  mutate(poll_date = mdy(createddate), modeldate_as_date = mdy(modeldate), start = mdy(startdate), end = mdy(enddate))</code></pre>
+<pre><code>## # A tibble: 1,945 x 9
+##    modeldate  startdate enddate   createddate timestamp poll_date  modeldate_as_da~
+##    &lt;chr&gt;      &lt;chr&gt;     &lt;chr&gt;     &lt;chr&gt;       &lt;chr&gt;     &lt;date&gt;     &lt;date&gt;          
+##  1 10/20/2021 1/19/2021 1/21/2021 1/28/2021   16:59:11~ 2021-01-28 2021-10-20      
+##  2 10/20/2021 1/19/2021 1/21/2021 1/22/2021   16:59:11~ 2021-01-22 2021-10-20      
+##  3 10/20/2021 1/20/2021 1/21/2021 1/22/2021   16:59:11~ 2021-01-22 2021-10-20      
+##  4 10/20/2021 1/20/2021 1/22/2021 1/28/2021   16:59:11~ 2021-01-28 2021-10-20      
+##  5 10/20/2021 1/20/2021 1/21/2021 1/22/2021   16:59:11~ 2021-01-22 2021-10-20      
+##  6 10/20/2021 1/20/2021 1/21/2021 2/2/2021    16:59:11~ 2021-02-02 2021-10-20      
+##  7 10/20/2021 1/21/2021 1/23/2021 1/28/2021   16:59:11~ 2021-01-28 2021-10-20      
+##  8 10/20/2021 1/21/2021 1/23/2021 1/28/2021   16:59:11~ 2021-01-28 2021-10-20      
+##  9 10/20/2021 1/20/2021 1/24/2021 1/25/2021   16:59:11~ 2021-01-25 2021-10-20      
+## 10 10/20/2021 1/21/2021 1/22/2021 1/25/2021   16:59:11~ 2021-01-25 2021-10-20      
+## # ... with 1,935 more rows, and 2 more variables: start &lt;date&gt;, end &lt;date&gt;</code></pre>
+<pre class="r"><code>#Cannot convert timestamp directly into date-time because of formatting, split into two vectors, reverse order, re-concatenate, convert to date-time
+s1 &lt;- stringr::str_split_fixed(approval_polllist$timestamp, &quot; &quot;, n=2)[,1]
+s2 &lt;- stringr::str_split_fixed(approval_polllist$timestamp, &quot; &quot;,n=2)[,2]
+times &lt;- dmy_hms(paste(s2, s1, sep = &quot;T&quot;))
+
+glimpse(times)</code></pre>
+<pre><code>##  POSIXct[1:1945], format: &quot;2021-10-20 16:59:11&quot; &quot;2021-10-20 16:59:11&quot; &quot;2021-10-20 16:59:11&quot; ...</code></pre>
+<pre class="r"><code>approval_polllist %&gt;%
+  add_column(times)</code></pre>
+<pre><code>## # A tibble: 1,945 x 23
+##    president   subgroup modeldate startdate enddate pollster    grade samplesize
+##    &lt;chr&gt;       &lt;chr&gt;    &lt;chr&gt;     &lt;chr&gt;     &lt;chr&gt;   &lt;chr&gt;       &lt;chr&gt;      &lt;dbl&gt;
+##  1 Joseph R. ~ All pol~ 10/20/20~ 1/19/2021 1/21/2~ Morning Co~ B          15000
+##  2 Joseph R. ~ All pol~ 10/20/20~ 1/19/2021 1/21/2~ Rasmussen ~ B           1500
+##  3 Joseph R. ~ All pol~ 10/20/20~ 1/20/2021 1/21/2~ Morning Co~ B           1993
+##  4 Joseph R. ~ All pol~ 10/20/20~ 1/20/2021 1/22/2~ Morning Co~ B          15000
+##  5 Joseph R. ~ All pol~ 10/20/20~ 1/20/2021 1/21/2~ Ipsos       B-          1115
+##  6 Joseph R. ~ All pol~ 10/20/20~ 1/20/2021 1/21/2~ YouGov      B+          1516
+##  7 Joseph R. ~ All pol~ 10/20/20~ 1/21/2021 1/23/2~ Morning Co~ B          15000
+##  8 Joseph R. ~ All pol~ 10/20/20~ 1/21/2021 1/23/2~ RMG Resear~ B-          1200
+##  9 Joseph R. ~ All pol~ 10/20/20~ 1/20/2021 1/24/2~ Rasmussen ~ B           1500
+## 10 Joseph R. ~ All pol~ 10/20/20~ 1/21/2021 1/22/2~ HarrisX     B+           941
+## # ... with 1,935 more rows, and 15 more variables: population &lt;chr&gt;,
+## #   weight &lt;dbl&gt;, influence &lt;dbl&gt;, approve &lt;dbl&gt;, disapprove &lt;dbl&gt;,
+## #   adjusted_approve &lt;dbl&gt;, adjusted_disapprove &lt;dbl&gt;, multiversions &lt;chr&gt;,
+## #   tracking &lt;lgl&gt;, url &lt;chr&gt;, poll_id &lt;dbl&gt;, question_id &lt;dbl&gt;,
+## #   createddate &lt;chr&gt;, timestamp &lt;chr&gt;, times &lt;dttm&gt;</code></pre>
+<div id="net-approval-confidence-intervals" class="section level2">
+<h2>Net Approval Confidence Intervals</h2>
+<pre class="r"><code># Create plot here
+approval_polllist &lt;- approval_polllist %&gt;%
+  select(approve, disapprove, enddate) %&gt;%
+  mutate(net_approval = approve - disapprove, end_date = mdy(enddate), week = week(end_date)) 
+
+newap_list &lt;- approval_polllist %&gt;%
+  group_by(week)%&gt;%
+  summarize(avg_netapp=mean(net_approval),
+              count=n(),
+              sdev=sd(net_approval),
+              SErr=sdev/sqrt(count),
+              t_crit = qt(0.975, count-1),
+              CI_low = avg_netapp - t_crit*SErr,
+              CI_high= avg_netapp + t_crit*SErr)
+
+  ggplot(newap_list, aes(x = week, y = avg_netapp))+
+  geom_point(colour = &quot;orangered1&quot;)+
+  geom_line(colour = &quot;orangered1&quot;)+
+  geom_smooth(colour = &quot;blue&quot;, se = FALSE) +
+  geom_hline(yintercept = 0, color = &quot;orange&quot;, size = 3)+
+  scale_y_continuous(breaks = seq(-15, 10, by = 2.5))+
+  scale_x_continuous(breaks = c(13,26), limits = c(3, 40))+
+  geom_ribbon(aes(ymin=CI_low, ymax=CI_high) ,fill=&quot;grey&quot;, alpha=0.2, colour = &quot;orangered1&quot;, outline.type = &quot;both&quot;)+
+  labs(title = &quot;Estimating approval margin (approve - disapprove) for Joe Biden&quot;, subtitle = &quot;Weekly average of all polls&quot;, x = &quot;Week of the year&quot;, y = &quot;Average Approval Margin (Approve - Disapprove)&quot;)+
+  theme_economist_white() +
+    theme(panel.border = element_blank())+
+    theme(axis.title.x = element_text(vjust = -2,size=14, face = &quot;italic&quot;, color = &quot;firebrick&quot;), #adjust axis 
+        axis.title.y = element_text(vjust = 3,size=14, face = &quot;italic&quot;, color = &quot;firebrick&quot;)) + 
+    scale_x_continuous(breaks = seq(0,52,7))</code></pre>
+<p><img src="/blogs/blog22_files/figure-html/trump_margin-1.png" width="100%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="comparing-confidence-intervals" class="section level2">
+<h2>Comparing Confidence Intervals</h2>
+<p>The confidence interval in week 3 was much wider than during any other time of 2021, but especially week 25. Trump supporters had stormed the capital on 6 January. The aftermath of this fallout probably led to the significantly increased width of the confidence interval. Another explanation could be that Biden assumed the presidency around that time and respondents of the survey could not base their approval on actual political action Biden had undertaken at the time. Week 25 was at the end of June and the 4th of July was coming up. The national holiday in the United States was likely the force behind the smaller confidence interval. Besides, Biden had ordered a military strike on Iran-backed militia in Iraq and Syria, which might be another reason for the decreased width of the confidence interval as military action against a common enemy unites a nation.</p>
+</div>
 </div>

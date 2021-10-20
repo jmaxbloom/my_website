@@ -1,5 +1,5 @@
 ---
-title: The Politics of Global Warming
+title: "The Politics of Global Warming"
 date: "2021-9-15"
 description: Are Republicans Anti-Science
 draft: no
@@ -289,7 +289,7 @@ In this exercise we analyze whether there are any differences between the propor
 
 
 ```{r, read_global_warming_pew_data}
-global_warming_pew <- read_csv(here::here("data", "global_warming_pew.csv"))
+global_warming_pew <- read_csv(here::here("content","blogs", "global_warming_pew.csv"))
 ```
 
 You will also notice that many responses should not be taken into consideration, like "No Answer", "Don't Know", "Not applicable", "Refused to Answer".

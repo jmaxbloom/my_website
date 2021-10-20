@@ -94,4 +94,4 @@ myStocks_returns_total%>%
 
 
 ```
-An alpha of 21.6% is crazy high. Good job me. 
+An alpha of **21.6%** is crazy high. Good job me. 

@@ -4,7 +4,7 @@ date: "2021-9-28"
 description: I've been performing well in the market. I wanted to use R to figure
   out exactly how well I've been doing compared to the market.
 draft: no
-image: pic10.jpg
+image: investing.jpg
 keywords: ''
 slug: invests
 categories:

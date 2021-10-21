@@ -49,49 +49,63 @@ library(ggrepel)
 
 # Returns of portfolio
 
-Lets input our ticker vector based on what I'm invested in. This analysis assumes I bought everything at the same time.
+Lets input our ticker vector based on what I'm invested in. This analysis assumes I bought everything at the same time as Schwab won't let me export individual data points.
 
 ```{r, tickers}
 
 tickers <- c("AAPL","AZN","BWXT","BRK","CRWD","DNN","DLR","ICE","MSFT","MRNA","NXE","HOOD","CRM","URA")
+
+sp <- "^GSPC"
 ```
 
 
 
 
 ```{r get_price_data, message=FALSE, warning=FALSE, cache=TRUE}
-# Notice the cache=TRUE argument in the chunk options. Because getting data is time consuming, # cache=TRUE means that once it downloads data, the chunk will not run again next time you knit your Rmd
 
 myStocks <- tickers %>% 
   tq_get(get  = "stock.prices",
-         from = "2020-10-10") %>%
+         from = "2020-10-10",
+         to = "2021-10-10") %>%
   group_by(symbol) 
 
+market <- sp %>%
+  tq_get(get = "stock.prices",
+         from = "2020-10-10",
+         to = "2021-10-10")%>%
+  group_by(symbol)
 
-glimpse(myStocks) # examine the structure of the resulting data frame
+
 ```
 
-Financial performance analysis depend on returns; If I buy a stock today for 100 and I sell it tomorrow for 101.75, my one-day return, assuming no transaction costs, is 1.75%. So given the adjusted closing prices, our first step is to calculate daily and monthly returns.
+To determine the alpha and performance of my portfolio, I must look into the returns on a stock basis and on an aggregate one. I only care about the total return over the past year.
 
 
 ```{r calculate_returns, message=FALSE, warning=FALSE, cache=TRUE}
  
 #Total returns
 myStocks_returns_total <- myStocks %>%
+  tq_transmute(select = adjusted,mutate_fun = periodReturn,period = "daily", type = "arithmetic",col_rename = "Return", cols = c(nested.col))%>%
+  summarise(return = prod(1+Return)-1)
+
+#Market Returns
+market_return <- market %>%
   tq_transmute(select = adjusted,mutate_fun = periodReturn,period = "yearly", type = "arithmetic",col_rename = "Return", cols = c(nested.col))%>%
-  summarise(return = AVERAGE(Return))
-
-
-
+  summarise(return = prod(1+Return)-1)
+head(myStocks_returns_total,13)
 ```
 
 ```{r, risk_return, echo=FALSE}
-#Alpha Calculation, assuming market return of 25.6%
-myStocks_returns_total$weight <- c(.099,.005,.045,.077,.034,.049,.123,.116,.208,.033,.001,.13,.071)
-myStocks_returns_total$beta <- c(1.22,0.18,1.01,1.33,2,0.2,0.73,0.8,1.49,1.61,1.74,1.04,1.18)
+
+#Schwab gave me my percentage weights of my portfolio, hardcoded them in
+myStocks_returns_total$weight <- c(.099,.005,.045,.13,.077,.049,.034,.123,.208,.116,.033,.01,.071)
+#pulled from Yahoo Finance
+myStocks_returns_total$beta <- c(1.22,0.18,1.01,1.04,1.33,2,0.2,0.73,1.49,0.8,1.61,1.74,1.18)
+#to adjust for me not holding the stocks for the full year
+myStocks_returns_total$actuals <- c(.3036,.0714,.0775,.4804,.4238,.0694,.4667,-.3519,.3813,3.1704,.4358,.3048,1.52)
 myStocks_returns_total%>%
-  summarize(PV_Return = sum(weight*return),beta = sum(weight*beta),alpha = (PV_Return - .015)-beta*(PV_Return-.256)) %>% kableExtra::kable(output = "html",color = "black", background = "lightgrey") %>% kableExtra::kable_classic()%>%kableExtra::column_spec(c(1:3), color = "Black", background = "lightgrey")%>%kableExtra::row_spec(0,background = "lightgray")
+  summarize(PV_Return = sum(weight*return),PV_True = sum(weight*actuals),beta = sum(weight*beta))%>%mutate(alpha = (PV_Return - .015)-beta*(market_return$return-.015),true_alpha = (PV_True - .015)-beta*(market_return$return-.015)) %>% kableExtra::kable(output = "html",color = "black", background = "lightgrey") %>% kableExtra::kable_classic()%>%kableExtra::column_spec(c(1:5), color = "Black", background = "lightgrey")%>%kableExtra::row_spec(0,background = "lightgray")
 
 
 ```
-An alpha of **21.6%** is crazy high. Good job me. 
+Now I didn't invest in everything 1 year ago. But if I did, my alpha would be *43.1%* which is very high. This analysis doesn't include my BRK.B stocks which, thus changes the analysis. Including that stock, I have an alpha closer to *20%*.

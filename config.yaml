@@ -75,7 +75,7 @@ params:
       #  url: elements.html
     menu: Menu
     #subtitle: By HTML5 Up
-    title: Forty
+    title: JMB
   tiles:
     enable: yes
     showcase:

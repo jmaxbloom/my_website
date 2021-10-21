@@ -19,33 +19,48 @@ categories:
 
 <div id="returns-of-portfolio" class="section level1">
 <h1>Returns of portfolio</h1>
-<p>Lets input our ticker vector based on what I’m invested in. This analysis assumes I bought everything at the same time.</p>
-<pre class="r"><code>tickers &lt;- c(&quot;AAPL&quot;,&quot;AZN&quot;,&quot;BWXT&quot;,&quot;BRK&quot;,&quot;CRWD&quot;,&quot;DNN&quot;,&quot;DLR&quot;,&quot;ICE&quot;,&quot;MSFT&quot;,&quot;MRNA&quot;,&quot;NXE&quot;,&quot;HOOD&quot;,&quot;CRM&quot;,&quot;URA&quot;)</code></pre>
-<pre class="r"><code># Notice the cache=TRUE argument in the chunk options. Because getting data is time consuming, # cache=TRUE means that once it downloads data, the chunk will not run again next time you knit your Rmd
+<p>Lets input our ticker vector based on what I’m invested in. This analysis assumes I bought everything at the same time as Schwab won’t let me export individual data points.</p>
+<pre class="r"><code>tickers &lt;- c(&quot;AAPL&quot;,&quot;AZN&quot;,&quot;BWXT&quot;,&quot;BRK&quot;,&quot;CRWD&quot;,&quot;DNN&quot;,&quot;DLR&quot;,&quot;ICE&quot;,&quot;MSFT&quot;,&quot;MRNA&quot;,&quot;NXE&quot;,&quot;HOOD&quot;,&quot;CRM&quot;,&quot;URA&quot;)
 
-myStocks &lt;- tickers %&gt;% 
+sp &lt;- &quot;^GSPC&quot;</code></pre>
+<pre class="r"><code>myStocks &lt;- tickers %&gt;% 
   tq_get(get  = &quot;stock.prices&quot;,
-         from = &quot;2020-10-10&quot;) %&gt;%
+         from = &quot;2020-10-10&quot;,
+         to = &quot;2021-10-10&quot;) %&gt;%
   group_by(symbol) 
 
-
-glimpse(myStocks) # examine the structure of the resulting data frame</code></pre>
-<pre><code>## Rows: 3,154
-## Columns: 8
-## Groups: symbol [13]
-## $ symbol   &lt;chr&gt; &quot;AAPL&quot;, &quot;AAPL&quot;, &quot;AAPL&quot;, &quot;AAPL&quot;, &quot;AAPL&quot;, &quot;AAPL&quot;, &quot;AAPL&quot;, &quot;AAPL~
-## $ date     &lt;date&gt; 2020-10-12, 2020-10-13, 2020-10-14, 2020-10-15, 2020-10-16, ~
-## $ open     &lt;dbl&gt; 120, 125, 121, 119, 121, 120, 116, 117, 117, 116, 114, 115, 1~
-## $ high     &lt;dbl&gt; 125, 125, 123, 121, 122, 120, 119, 119, 118, 117, 117, 117, 1~
-## $ low      &lt;dbl&gt; 119, 120, 120, 118, 119, 116, 116, 116, 115, 114, 113, 115, 1~
-## $ close    &lt;dbl&gt; 124, 121, 121, 121, 119, 116, 118, 117, 116, 115, 115, 117, 1~
-## $ volume   &lt;dbl&gt; 2.40e+08, 2.62e+08, 1.51e+08, 1.13e+08, 1.15e+08, 1.21e+08, 1~
-## $ adjusted &lt;dbl&gt; 124, 120, 120, 120, 118, 115, 117, 116, 115, 114, 114, 116, 1~</code></pre>
-<p>Financial performance analysis depend on returns; If I buy a stock today for 100 and I sell it tomorrow for 101.75, my one-day return, assuming no transaction costs, is 1.75%. So given the adjusted closing prices, our first step is to calculate daily and monthly returns.</p>
+market &lt;- sp %&gt;%
+  tq_get(get = &quot;stock.prices&quot;,
+         from = &quot;2020-10-10&quot;,
+         to = &quot;2021-10-10&quot;)%&gt;%
+  group_by(symbol)</code></pre>
+<p>To determine the alpha and performance of my portfolio, I must look into the returns on a stock basis and on an aggregate one. I only care about the total return over the past year.</p>
 <pre class="r"><code>#Total returns
 myStocks_returns_total &lt;- myStocks %&gt;%
+  tq_transmute(select = adjusted,mutate_fun = periodReturn,period = &quot;daily&quot;, type = &quot;arithmetic&quot;,col_rename = &quot;Return&quot;, cols = c(nested.col))%&gt;%
+  summarise(return = prod(1+Return)-1)
+
+#Market Returns
+market_return &lt;- market %&gt;%
   tq_transmute(select = adjusted,mutate_fun = periodReturn,period = &quot;yearly&quot;, type = &quot;arithmetic&quot;,col_rename = &quot;Return&quot;, cols = c(nested.col))%&gt;%
-  summarise(return = AVERAGE(Return))</code></pre>
+  summarise(return = prod(1+Return)-1)
+head(myStocks_returns_total,13)</code></pre>
+<pre><code>## # A tibble: 13 x 2
+##    symbol   return
+##    &lt;chr&gt;     &lt;dbl&gt;
+##  1 AAPL    0.156  
+##  2 AZN     0.127  
+##  3 BWXT   -0.00532
+##  4 CRM     0.0203 
+##  5 CRWD    0.679  
+##  6 DLR    -0.0869 
+##  7 DNN     2.91   
+##  8 HOOD    0.200  
+##  9 ICE     0.258  
+## 10 MRNA    3.05   
+## 11 MSFT    0.344  
+## 12 NXE     1.80   
+## 13 URA     1.16</code></pre>
 <table class=" lightable-classic" style="font-family: &quot;Arial Narrow&quot;, &quot;Source Sans Pro&quot;, sans-serif; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -53,26 +68,38 @@ myStocks_returns_total &lt;- myStocks %&gt;%
 PV_Return
 </th>
 <th style="text-align:right;background-color: lightgray !important;">
+PV_True
+</th>
+<th style="text-align:right;background-color: lightgray !important;">
 beta
 </th>
 <th style="text-align:right;background-color: lightgray !important;">
 alpha
+</th>
+<th style="text-align:right;background-color: lightgray !important;">
+true_alpha
 </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align:right;color: Black !important;background-color: lightgrey !important;">
-0.454
+0.709
 </td>
 <td style="text-align:right;color: Black !important;background-color: lightgrey !important;">
-1.11
+0.677
 </td>
 <td style="text-align:right;color: Black !important;background-color: lightgrey !important;">
-0.218
+1.16
+</td>
+<td style="text-align:right;color: Black !important;background-color: lightgrey !important;">
+0.431
+</td>
+<td style="text-align:right;color: Black !important;background-color: lightgrey !important;">
+0.399
 </td>
 </tr>
 </tbody>
 </table>
-<p>An alpha of <strong>21.6%</strong> is crazy high. Good job me.</p>
+<p>Now I didn’t invest in everything 1 year ago. But if I did, my alpha would be <em>43.1%</em> which is very high. This analysis doesn’t include my BRK.B stocks which, thus changes the analysis. Including that stock, I have an alpha closer to <em>20%</em>.</p>
 </div>

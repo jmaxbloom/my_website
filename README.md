@@ -1,2 +1,2 @@
 # my_website
-Jared Bloom
+This is my final project portfolio website. I have put a few reflections/blog posts and a couple of things that I have found interesting in my R project work. I also created a new set of code to analyze the performance of my investing portfolio (calculating alpha and returns) without adjusting for time, Schwab won't let me export data.
